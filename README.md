@@ -25,6 +25,7 @@ Environment="VSS_DEVICE_UUID=XXX_DEVICE_UUID_HERE_XXX"
 ```
 5. Start the service with `sudo systemctl start ipp-server-vss` and then verify it is running with `sudo systemctl status ipp-server-vss`.
 6. On any computer(s) that want to print, add the printer using ipp://1.2.3.4:2031/ipp/ (substituting your server's IP address) and select the Generic PDF printer/driver. Print a test page to verify operation.
+7. If all is well, use `sudo systemctl enable ipp-server-vss` to let the IPP server start at boot.
 
 ## Future
 
