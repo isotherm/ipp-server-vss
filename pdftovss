@@ -1,0 +1,46 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+from io import BytesIO
+import json
+import os
+import sys
+
+from pdf2image import convert_from_bytes
+from PIL import Image, ImageOps
+from vss import ApiDeclarations
+
+
+# Set up VSS connection and retrieve screen size
+VSS_API_URL = os.getenv('VSS_API_URL')
+VSS_API_KEY = os.getenv('VSS_API_KEY')
+VSS_API_SECRET = os.getenv('VSS_API_SECRET')
+VSS_DEVICE_UUID = os.getenv('VSS_DEVICE_UUID')
+vss_api = ApiDeclarations(VSS_API_URL, VSS_API_KEY, VSS_API_SECRET)
+status, device = vss_api.get_device(VSS_DEVICE_UUID)
+display = device['Displays'][0]
+if display['Rotation'] & 1:
+    width = display['Height']
+    height = display['Width']
+else:
+    width = display['Width']
+    height = display['Height']
+
+# Convert PDF to PIL images and keep the first one
+image = convert_from_bytes(sys.stdin.buffer.read())
+if len(image) < 1:
+    print('No images returned from PDF conversion')
+    sys.exit(1)
+image = image[0]
+
+# Convert to grayscale, auto crop, and resize
+image = image.convert('L')
+image = image.crop(ImageOps.invert(image).getbbox())
+image = ImageOps.pad(image, (width, height), color=255)
+imagefile = BytesIO()
+image.save(imagefile, format='PNG')
+imagefile.seek(0, 0)
+
+# Send image to VSS
+fr = {'image': ('img.png', imagefile, 'image/png', {'Expires': '0'})}
+sc = vss_api.set_http(VSS_DEVICE_UUID, fr)

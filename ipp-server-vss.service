@@ -1,0 +1,14 @@
+[Unit]
+Description=IPP Server for Visionect Tablets
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+ExecStart=/home/pi/.local/bin/ippserver -H 0.0.0.0 -p 2031 run /home/pi/.local/bin/pdftovss --pdf
+
+[Install]
+WantedBy=multi-user.target
